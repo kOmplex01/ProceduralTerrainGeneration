@@ -4,7 +4,9 @@ In this project, I have Implemented procedural terrain generation using Compute 
 ## How to Use
 The gameobject must have three components :
 >Mesh Filter (Dont add any mesh)
+
 >Mesh Renderer
+
 >MeshGeneration.cs (Add MeshGeneration.compute in the Placeholder)
 
 ## Light Affected Terrain
