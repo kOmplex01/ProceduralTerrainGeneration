@@ -1,0 +1,100 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+//#pragma kernel Noise
+#pragma kernel Height
+#pragma kernel Triangle
+#pragma kernel Texture
+
+#include "noiseSimplex.cginc" //header file for noise 
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+//defining buffers
+RWTexture2D<float4> Result;
+StructuredBuffer<float2> Heights;
+RWStructuredBuffer<float3> HeightMap;
+RWStructuredBuffer<int> TrisMap;
+
+//variables for mesh
+int mapResolution;
+float scale;
+float offsetX;
+float offsetZ;
+int octaves;
+float persistance;
+float lacunarity;
+float depth;
+
+//method to calculate height using perlin noise function
+float CalculateHeight(float x, float z)
+{
+    
+    //float height;
+    float amplitude = 1;
+    float frequency = 1;
+    float noiseHeight = 0;
+
+    for (int i = 0; i < octaves; i++)
+    {
+        float sampleX =  x / (mapResolution * scale * frequency) + offsetX;
+        float sampleZ =  z / (mapResolution * scale * frequency) + offsetZ;
+
+        float perlinValue = perlin(sampleX, sampleZ);
+        noiseHeight += perlinValue * amplitude;
+
+        amplitude /= persistance;
+        frequency *= lacunarity;
+    }
+    
+    //compensator is used to keep the height values between 0 to 1(included)
+   float compensator = 1;
+    float divider = persistance;
+    for (int j = 1; j < octaves; j++)
+    {
+        compensator += 1 / divider;
+        divider *= persistance;
+        
+    }
+    
+    return (noiseHeight / compensator);
+}
+
+//calculating 2D height array
+[numthreads(257,1,1)]
+void Height(uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+    float2 res = Heights[id.x];
+    float vertHeight = CalculateHeight(res.x * 1000, res.y * 1000);
+    HeightMap[id.x] = float3(res.x, vertHeight * depth, res.y);
+
+    
+}
+
+//calculating the triangle and vertices array required for mesh
+int tris, vert;
+[numthreads(256, 1, 1)]
+void Triangle(uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+    tris = id.x * 6;
+    vert = (int) id.x / mapResolution;
+    
+    TrisMap[tris + 0] = id.x + vert + 0;
+    TrisMap[tris + 2] = id.x + vert + 1;
+    TrisMap[tris + 3] = id.x + vert + 1;
+    TrisMap[tris + 1] = id.x + vert + mapResolution + 1;
+    TrisMap[tris + 4] = id.x + vert + mapResolution + 1;
+    TrisMap[tris + 5] = id.x + vert + mapResolution + 2;
+    
+}
+
+// can be used for texture, not implemented just now
+[numthreads(16, 16, 1)]
+void Texture(uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+   
+    Result[id.xy] = float4(1, 1, 1, 1);
+       
+}
+
