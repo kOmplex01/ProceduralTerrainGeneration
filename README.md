@@ -1,6 +1,12 @@
 # ProceduralTerrainGeneration
 In this project, I have Implemented procedural terrain generation using Compute Shader, which does all the calcualtions on the GPU, hence are very fast. Therefore, the terrain can be created or updated seamlessly in the runtime.
 
+## How to Use
+The gameobject must have three components :
+>Mesh Filter (Dont add any mesh)
+>Mesh Renderer
+>MeshGeneration.cs (Add MeshGeneration.compute in the Placeholder)
+
 ## Light Affected Terrain
 Terrain gets affected by light realtime because it is a mesh under the hood.
 ## Featurres in Terrain System
